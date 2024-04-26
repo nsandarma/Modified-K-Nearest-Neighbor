@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 DESCRIPTION = "Modified K-Nearest Neighbor"
 
 NAME = "mknn"
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 setup(
     name=NAME,
     version=VERSION,
