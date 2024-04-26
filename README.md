@@ -77,7 +77,8 @@
 
 4. **Calculate Weight**
 
-    Menghitung bobot dengan persamaan: $$ W(x) = Validity(i)  {1 \over d(e) + 0.5} $$
+    Menghitung bobot dengan persamaan: 
+    $$ W(x) = Validity(i)  {1 \over d(e) + 0.5} $$
 
 
 ## Catatan
