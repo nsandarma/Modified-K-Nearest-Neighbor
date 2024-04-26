@@ -64,16 +64,20 @@
 ![Workflow](workflow.png)
 
 1. **Calculate Distance (Train Data)**
+
     Menghitung jarak antar data latih (euclidean/manhattan).
+
 2. **Validity**
+
     Apabila label 𝑥 sama dengan label tetangga, maka nilainya adalah 1, dan jika tidak sama, maka nilainya adalah 0.
 
 3. **Calculate Distance(Test Data)**
-    Menghitung Jarak Data uji dengan data latih (euclidean/manhattan).
-4. **Calculate Weight**
-    Menghitung bobot dengan persamaan:
 
-$$ W(x) = Validity(i)  {1 \over d(e) + 0.5} $$
+    Menghitung Jarak Data uji dengan data latih (euclidean/manhattan).
+
+4. **Calculate Weight**
+
+    Menghitung bobot dengan persamaan: $$ W(x) = Validity(i)  {1 \over d(e) + 0.5} $$
 
 
 ## Catatan
