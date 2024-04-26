@@ -3,9 +3,6 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as f:
     long_description = f.read()
 
-with open("requirements.txt", "r") as req_file:
-    requirements = req_file.read().splitlines()
-
 DESCRIPTION = "Modified K-Nearest Neighbor"
 
 NAME = "mknn"
@@ -25,5 +22,5 @@ setup(
         "Operating System :: OS Independent",
     ],
     python_requires=">=3.10",
-    install_requires=requirements,
+    install_requires=['scikit-learn','numpy'],
 )
