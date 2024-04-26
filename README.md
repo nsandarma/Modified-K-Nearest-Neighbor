@@ -1,18 +1,17 @@
 # Modified K-Nearest Neighbors (MKNN)
 
-MKNN memperkenalkan beberapa perubahan terhadap KNN standar, seperti validasi hasil prediksi, penggunaan bobot untuk memperhitungkan kualitas prediksi, dan fungsi tambahan untuk membandingkan performa MKNN dengan KNN standar.
 
 ## Cara Penggunaan
 
-Untuk menggunakan kelas MKNN, ikuti langkah-langkah di bawah ini:
-
 1. **Instalasi**
 
-    Pastikan Anda telah menginstal Python dan paket-paket pendukungnya seperti NumPy dan scikit-learn.
+    ```
+    pip install mknn
+    ```
 
 2. **Import**
 
-    Import kelas MKNN ke dalam proyek Python Anda:
+
 
     ```python
     from mknn import MKNN
@@ -60,6 +59,23 @@ Untuk menggunakan kelas MKNN, ikuti langkah-langkah di bawah ini:
 
     Hasilnya akan berupa sebuah dictionary yang berisi akurasi MKNN dan KNN standar.
 
+
+## Workflow
+![Workflow](workflow.png)
+
+1. **Calculate Distance (Train Data)**
+    Menghitung jarak antar data latih (euclidean/manhattan).
+2. **Validity**
+    Apabila label 𝑥 sama dengan label tetangga, maka nilainya adalah 1, dan jika tidak sama, maka nilainya adalah 0.
+
+3. **Calculate Distance(Test Data)**
+    Menghitung Jarak Data uji dengan data latih (euclidean/manhattan).
+4. **Calculate Weight**
+    Menghitung bobot dengan persamaan:
+
+$$ W(x) = Validity(i)  {1 \over d(e) + 0.5} $$
+
+
 ## Catatan
 
-Pastikan untuk menginstal semua dependensi yang diperlukan sebelum menggunakan kelas MKNN. Juga, pastikan bahwa data yang Anda gunakan telah diproses dengan benar sesuai dengan kebutuhan algoritma.
+Pastikan bahwa data yang Anda gunakan telah diproses dengan benar sesuai dengan kebutuhan algoritma.

@@ -5,57 +5,37 @@ import numpy as np
 
 class MKNN:
     """
-    Modified K-Nearest Neighbors classifier.
+        Modified K-Nearest Neighbors (MKNN)
 
-    Parameters:
-    -----------
-    n_neighbors : int, optional (default=5)
-        Number of neighbors to use for classification.
-    distance : str, optional (default='euclidean')
-        Distance metric to use. Supported metrics are 'euclidean', 'manhattan', 'chebyshev', and 'minkowski'.
+    This module implements a modified version of the K-Nearest Neighbors (KNN) algorithm for classification tasks.
 
     Attributes:
-    -----------
-    n_neighbors : int
-        Number of neighbors used for classification.
-    distance : str
-        Distance metric used for classification.
-    model : sklearn.neighbors.KNeighborsClassifier
-        K-Nearest Neighbors classifier model.
+        n_neighbors (int): Number of neighbors to consider.
+        distance (str): Distance metric to use. Default is "euclidean".
 
     Methods:
-    --------
-    fit(X, y)
-        Fit the model according to the given training data.
-    get_distances(X)
-        Get distances of the nearest neighbors of input samples.
-    score(X_test, y_true)
-        Return the mean accuracy on the given test data and labels.
-    knn(X)
-        Predict the class labels for the provided data.
-    compare_with_knn(X, y)
-        Compare the performance of MKNN with standard KNN.
-    predict(X)
-        Predict the class labels for the provided data.
+        - __init__(self, n_neighbors: int = 5, distance: str = "euclidean"): Initializes the MKNN classifier.
+        - fit(self, X: np.ndarray, y: np.ndarray) -> object: Fits the MKNN classifier to the training data.
+        - predict(self, X: np.ndarray) -> np.ndarray: Predicts the class labels for the input data.
+        - score(self, X_test: np.ndarray, y_true: np.ndarray) -> float: Computes the accuracy score of the classifier.
+        - compare_with_knn(self, X: np.ndarray, y: np.ndarray) -> dict: Compares the performance of MKNN with standard KNN.
+        - knn(self, X: np.ndarray) -> np.ndarray: Predicts class labels using the underlying KNN model.
+        - weight_preview(self, X: np.ndarray, y: Optional[np.ndarray] = None): Displays the weights and predictions for the input data.
+        - get_params(self) -> dict: Returns the parameters of the MKNN model.
+        - get_distances_indices(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]: Returns distances and indices of nearest neighbors for input data.
+
+    Notes:
+        - This implementation modifies the standard KNN by introducing a weight factor for each neighbor based on the distance and validation against nearest neighbors.
+        - The distance metric used can be specified during initialization. Supported metrics include "euclidean", "manhattan", "chebyshev", "minkowski", and more.
+        - Before calling predict, fit method should be called with training data.
+        - To compare the performance of MKNN with standard KNN, use compare_with_knn method.
 
     Raises:
-    -------
-    ValueError
-        If 'X' is not fitted before calling 'get_distances', or if 'X' has invalid dimensionality.
+        - ValueError: If fit is called before initializing the classifier, or if X_test has incompatible dimensions with X_train.
 
     """
 
     def __init__(self, n_neighbors: int = 5, distance: str = "euclidean"):
-        """
-        Initialize MKNN with the given parameters.
-
-        Parameters:
-        -----------
-        n_neighbors : int, optional (default=5)
-            Number of neighbors to use for classification.
-        distance : str, optional (default='euclidean')
-            Distance metric to use. Supported metrics are 'euclidean', 'manhattan', 'chebyshev', and 'minkowski'.
-        """
         self.n_neighbors = n_neighbors
         self.distance = distance
         self.model = KNeighborsClassifier(n_neighbors=n_neighbors, metric=distance)
@@ -63,81 +43,69 @@ class MKNN:
     def __str__(self):
         return "Modified K-Nearest Neighbors"
 
+    def get_params(self):
+        return self.model.get_params()
+
     def __validate(X, y, model):
-        neighbors = model.kneighbors(X)[1]
+        indeces = model.kneighbors(X, n_neighbors=2)[1]
         validate = []
-        for i, v in enumerate(neighbors):
-            selected_ = y[v]
-            if np.bincount(selected_).argmax() == y[i]:
+        for v in indeces:
+            label_neighbors = y[v[1]]
+            label = y[v[0]]
+            if label_neighbors == label:
                 validate.append(1)
             else:
                 validate.append(0)
         return validate
 
     def fit(self, X: np.ndarray, y: np.ndarray):
-        """
-        Fit the model according to the given training data.
-
-        Parameters:
-        -----------
-        X : numpy.ndarray
-            Training data.
-        y : numpy.ndarray
-            Target values.
-
-        Returns:
-        --------
-        self : MKNN
-            Returns an instance of self.
-        """
         self.X = X
         self.y = y
         self.model.fit(X, y)
         self.validate = MKNN.__validate(X, y, model=self.model)
         return self
 
-    def get_distances(self, X):
-        """
-        Get distances of the nearest neighbors of input samples.
-
-        Parameters:
-        -----------
-        X : numpy.ndarray
-            Input samples.
-
-        Returns:
-        --------
-        numpy.ndarray
-            Distances of the nearest neighbors.
-        """
+    def get_distances_indices(self, X):
         if not hasattr(self, "X"):
             raise ValueError("do a fit first !")
-        return self.model.kneighbors(X)[0]
+        return self.model.kneighbors(X)
+
+    def weight_preview(self, X, y=None):
+        dist, indices = self.model.kneighbors(X)
+        validity = self.validate
+        y_train = self.y
+        for i, v in enumerate(indices):
+            if y is None:
+                actual = None
+            else:
+                actual = y[i]
+
+            dist_ = dist[i]
+            w_ = 0
+            idx = 0
+            for j, k in enumerate(v):
+                val = validity[k]
+                d = dist_[j]
+                w = val * 1 / (d + 0.5)
+                if w > w_:
+                    w_ = w
+                    idx = k
+                print(
+                    f"idx : {k} | val : {val} | d : {d} | weight : {w} | label : {y_train[k]} | actual : {actual}"
+                )
+            print(f"Max Weight : {w_} | predicted : {y_train[idx]}")
+            print()
 
     def __weight(val, idx, dist):
         idx_val = [
-            (i, val[i], dist[j], val[i] * dist[j] + 0.5) for j, i in enumerate(idx)
+            (i, val[i], dist[j], val[i] * 1 / (dist[j] + 0.5))
+            for j, i in enumerate(idx)
         ]
         weight = [(i[0], i[-1]) for i in idx_val]
         sorted_weight = sorted(weight, key=lambda x: x[1], reverse=True)[0]
         return sorted_weight
 
     def score(self, X_test: np.ndarray, y_true: np.ndarray):
-        """
-        Return the mean accuracy on the given test data and labels.
-
-        Parameters:
-        -----------
-        X_test : numpy.ndarray
-            Test samples.
-        y_true : numpy.ndarray
-            True labels for X_test.
-
-        Returns:
-        --------
-        float
-            Mean accuracy.
-        """
         pred = self.predict(X_test)
         return accuracy_score(y_true=y_true, y_pred=pred)
 
@@ -151,64 +119,23 @@ class MKNN:
         return X
 
     def knn(self, X: np.ndarray):
-        """
-        Predict the class labels for the provided data.
-
-        Parameters:
-        -----------
-        X : numpy.ndarray
-            Input samples.
-
-        Returns:
-        --------
-        numpy.ndarray
-            Predicted class labels.
-        """
         X = MKNN.__X_test(X, self.X)
         pred = self.model.predict(X)
         return pred
 
     def compare_with_knn(self, X: np.ndarray, y: np.ndarray) -> dict:
-        """
-        Compare the performance of MKNN with standard KNN.
-
-        Parameters:
-        -----------
-        X : numpy.ndarray
-            Input samples.
-        y : numpy.ndarray
-            Target values.
-
-        Returns:
-        --------
-        dict
-            A dictionary containing MKNN and KNN accuracies.
-        """
         X = MKNN.__X_test(X, self.X)
         mknn = self.score(X, y)
         knn = self.model.score(X, y)
         return {"MKNN": mknn, "KNN": knn}
 
     def predict(self, X: np.ndarray):
-        """
-        Predict the class labels for the provided data.
-
-        Parameters:
-        -----------
-        X : numpy.ndarray
-            Input samples.
-
-        Returns:
-        --------
-        numpy.ndarray
-            Predicted class labels.
-        """
         X = MKNN.__X_test(X, self.X)
         dist, idx = self.model.kneighbors(X)
         val = self.validate
         y_pred = []
         for i, v in enumerate(idx):
-            weight = MKNN.__weight(val, v, dist[i])
-            pred = self.y[weight[0]]
+            indeces = MKNN.__weight(val, v, dist[i])
+            pred = self.y[indeces[0]]
             y_pred.append(pred)
         return np.array(y_pred)
